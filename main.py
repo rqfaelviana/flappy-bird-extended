@@ -21,6 +21,15 @@ black = (0, 0 , 0)
 white = (255, 255, 255)
 red = (255, 0, 0)
 
+# função para reiniciar o jogo
+def reset_game():
+    global bird_y, bird_velocity, pipe_x, pipe_height, game_over
+    bird_y = height // 2
+    bird_velocity = 0 
+    pipe_x = width
+    pipe_height = random.randint(100, height - pipe_gap - 100)
+    game_over = False
+
 #Criando o pássaro
 bird_x = 50
 bird_y = height // 2
@@ -48,6 +57,9 @@ while running:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             bird_velocity = jump_strength
+        if event.type == pygame.KEYDOWN and game_over:
+            if event.key == pygame.K_r: 
+                reset_game()
     
     if not game_over:
     
@@ -79,7 +91,9 @@ while running:
         pygame.draw.rect(screen, black, (pipe_x, pipe_height + pipe_gap, pipe_width, height - pipe_height -pipe_gap)) #inferior    
     else:
         game_over_text = GO_font.render("Game Over", True, red)
-        screen.blit(game_over_text, (width // 2 - game_over_text.get_width() // 2, height // 2 - game_over_text.get_height() // 2))
+        restart_text = GO_font.render("Press R to Restart", True, white)
+        screen.blit(game_over_text, (width // 2 - game_over_text.get_width() // 2, height // 2 - game_over_text.get_height() // 2- 50))
+        screen.blit(restart_text, (width // 2 - restart_text.get_width() // 2, height // 2 - restart_text.get_height() // 2 + 20))
 
     #Atualiza a tela
     pygame.display.flip()
