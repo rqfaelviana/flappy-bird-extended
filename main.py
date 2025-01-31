@@ -21,14 +21,8 @@ black = (0, 0 , 0)
 white = (255, 255, 255)
 red = (255, 0, 0)
 
-# função para reiniciar o jogo
-def reset_game():
-    global bird_y, bird_velocity, pipe_x, pipe_height, game_over
-    bird_y = height // 2
-    bird_velocity = 0 
-    pipe_x = width
-    pipe_height = random.randint(100, height - pipe_gap - 100)
-    game_over = False
+#Fonte do Game Over
+GO_font = pygame.font.Font(None, 64)
 
 #Criando o pássaro
 bird_x = 50
@@ -45,8 +39,19 @@ pipe_velocity = 5
 pipe_x = width
 pipe_height = random.randint(100, height - pipe_gap -100)
 
-#Fonte do Game Over
-GO_font = pygame.font.Font(None, 64)
+score = 0
+point_awarded = False # evita múltiplos pontos por cano
+
+# função para reiniciar o jogo
+def reset_game():
+    global bird_y, bird_velocity, pipe_x, pipe_height, game_over, score, point_awarded
+    bird_y = height // 2
+    bird_velocity = 0 
+    pipe_x = width
+    pipe_height = random.randint(100, height - pipe_gap - 100)
+    game_over = False
+    score = 0 
+    point_awarded = False
 
 #Loop principal
 running = True
@@ -67,11 +72,17 @@ while running:
         bird_velocity += gravity
         bird_y += bird_velocity
 
+        #Aumenta a pontuação quando passa pelo cano
+        if pipe_x + pipe_width < bird_x and not point_awarded:
+            score += 1
+            point_awarded = True
+
         #movimento dos canos
         pipe_x -= pipe_velocity
         if pipe_x + pipe_width < 0: 
             pipe_x = width
             pipe_height = random.randint(100, height - pipe_gap -100)
+            point_awarded = False
 
     #Colisão
         if (bird_y - bird_radius < 0 or bird_y + bird_radius > height or 
@@ -89,6 +100,10 @@ while running:
         #desenho dos canos 
         pygame.draw.rect(screen, black, (pipe_x, 0, pipe_width, pipe_height)) #superior 
         pygame.draw.rect(screen, black, (pipe_x, pipe_height + pipe_gap, pipe_width, height - pipe_height -pipe_gap)) #inferior    
+
+        #Exibir a pontuação
+        score_text = GO_font.render(str(score), True, white)
+        screen.blit(score_text, (width // 2, 50))
     else:
         game_over_text = GO_font.render("Game Over", True, red)
         restart_text = GO_font.render("Press R to Restart", True, white)
