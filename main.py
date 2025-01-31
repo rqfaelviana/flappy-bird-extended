@@ -39,12 +39,16 @@ pipe_velocity = 5
 pipe_x = width
 pipe_height = random.randint(100, height - pipe_gap -100)
 
+#variáveis de pontuação
 score = 0
+best_score = 0
 point_awarded = False # evita múltiplos pontos por cano
 
 # função para reiniciar o jogo
 def reset_game():
-    global bird_y, bird_velocity, pipe_x, pipe_height, game_over, score, point_awarded
+    global bird_y, bird_velocity, pipe_x, pipe_height, game_over, score, best_score, point_awarded
+    if score > best_score:
+        best_score = score
     bird_y = height // 2
     bird_velocity = 0 
     pipe_x = width
@@ -90,6 +94,9 @@ while running:
             (bird_y - bird_radius < pipe_height or bird_y + bird_radius > pipe_height + pipe_gap))):
             game_over = True
 
+        if score > best_score:
+            best_score = score
+
     screen.fill((blue)) #Cor de fundo
 
     if not game_over: 
@@ -101,15 +108,20 @@ while running:
         pygame.draw.rect(screen, black, (pipe_x, 0, pipe_width, pipe_height)) #superior 
         pygame.draw.rect(screen, black, (pipe_x, pipe_height + pipe_gap, pipe_width, height - pipe_height -pipe_gap)) #inferior    
 
-        #Exibir a pontuação
-        score_text = GO_font.render(str(score), True, white)
-        screen.blit(score_text, (width // 2, 50))
     else:
         game_over_text = GO_font.render("Game Over", True, red)
         restart_text = GO_font.render("Press R to Restart", True, white)
         screen.blit(game_over_text, (width // 2 - game_over_text.get_width() // 2, height // 2 - game_over_text.get_height() // 2- 50))
         screen.blit(restart_text, (width // 2 - restart_text.get_width() // 2, height // 2 - restart_text.get_height() // 2 + 20))
 
+        # Exibe sua maior pontuação 
+        best_score_text = GO_font.render(f"Best score: {best_score}", True, white)
+        screen.blit(best_score_text, (width // 2 - best_score_text.get_width() // 2, 60))
+
+    # Exibe a pontuação atual
+    score_text = GO_font.render(f"Score: {score}", True, white)
+    screen.blit(score_text, (width // 2 - score_text.get_width() // 2, 20))
+ 
     #Atualiza a tela
     pygame.display.flip()
 
