@@ -44,9 +44,12 @@ score = 0
 best_score = 0
 point_awarded = False # evita múltiplos pontos por cano
 
+#contagem inicial para os canos aparecerem
+start_time = 0
+
 # função para reiniciar o jogo
 def reset_game():
-    global bird_y, bird_velocity, pipe_x, pipe_height, game_over, score, best_score, point_awarded
+    global bird_y, bird_velocity, pipe_x, pipe_height, game_over, score, best_score, point_awarded, game_started
     if score > best_score:
         best_score = score
     bird_y = height // 2
@@ -56,22 +59,32 @@ def reset_game():
     game_over = False
     score = 0 
     point_awarded = False
+    game_started = False
 
 #Loop principal
 running = True
 game_over = False
+game_started = False
+
 while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-            bird_velocity = jump_strength
+            if not game_started:
+                game_started = True
+                start_time = pygame.time.get_ticks()
+            else:
+                bird_velocity = jump_strength  
         if event.type == pygame.KEYDOWN and game_over:
             if event.key == pygame.K_r: 
                 reset_game()
     
-    if not game_over:
-    
+    if game_started and not game_over:
+        current_time = pygame.time.get_ticks()
+
+        if current_time - start_time >= 4000:
+            pipe_x -= pipe_velocity
         #Física do pássaro
         bird_velocity += gravity
         bird_y += bird_velocity
@@ -82,7 +95,6 @@ while running:
             point_awarded = True
 
         #movimento dos canos
-        pipe_x -= pipe_velocity
         if pipe_x + pipe_width < 0: 
             pipe_x = width
             pipe_height = random.randint(100, height - pipe_gap -100)
