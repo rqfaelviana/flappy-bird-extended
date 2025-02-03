@@ -5,6 +5,15 @@ import random
 #Inicia o jogo
 pygame.init()
 
+#inicia o mixer de sons
+pygame.mixer.init()
+
+#Efeitos sonoros 
+fly = pygame.mixer.Sound("sounds/whoosh.mp3")
+point = pygame.mixer.Sound("sounds/point.mp3")
+slam = pygame.mixer.Sound("sounds/slam.mp3")
+gameover_sound = pygame.mixer.Sound("sounds/game_over.mp3")
+
 #Configuração de tela
 width, height = 400, 600
 screen = pygame.display.set_mode((width, height))
@@ -75,7 +84,8 @@ while running:
                 game_started = True
                 start_time = pygame.time.get_ticks()
             else:
-                bird_velocity = jump_strength  
+                bird_velocity = jump_strength 
+                fly.play() 
         if event.type == pygame.KEYDOWN and game_over:
             if event.key == pygame.K_r: 
                 reset_game()
@@ -93,6 +103,7 @@ while running:
         if pipe_x + pipe_width < bird_x and not point_awarded:
             score += 1
             point_awarded = True
+            point.play()
 
         #movimento dos canos
         if pipe_x + pipe_width < 0: 
@@ -105,6 +116,8 @@ while running:
             (pipe_x < bird_x + bird_radius < pipe_x + pipe_width and 
             (bird_y - bird_radius < pipe_height or bird_y + bird_radius > pipe_height + pipe_gap))):
             game_over = True
+            slam.play()
+            gameover_sound.play()
 
         if score > best_score:
             best_score = score
