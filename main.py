@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+import time
 
 #Inicia o jogo
 pygame.init()
@@ -13,6 +14,13 @@ fly = pygame.mixer.Sound("sounds/whoosh.mp3")
 point = pygame.mixer.Sound("sounds/point.mp3")
 slam = pygame.mixer.Sound("sounds/slam.mp3")
 gameover_sound = pygame.mixer.Sound("sounds/game_over.mp3")
+
+#Imagens
+background = pygame.image.load("images/background.png")
+rowlet = pygame.image.load("images/rowlet_1.png")
+pipe_img = pygame.image.load("images/pipe.png")
+
+
 
 #Configuração de tela
 width, height = 400, 600
@@ -48,6 +56,10 @@ pipe_velocity = 5
 pipe_x = width
 pipe_height = random.randint(100, height - pipe_gap -100)
 
+# Redimensiona as imagens
+rowlet = pygame.transform.scale(rowlet, (65,55))
+pipe_img = pygame.transform.scale(pipe_img, (pipe_width, height))
+
 #variáveis de pontuação
 score = 0
 best_score = 0
@@ -61,6 +73,9 @@ def reset_game():
     global bird_y, bird_velocity, pipe_x, pipe_height, game_over, score, best_score, point_awarded, game_started
     if score > best_score:
         best_score = score
+
+    time.sleep(1) # Pausa pequena antes de reiniciar o jogo
+
     bird_y = height // 2
     bird_velocity = 0 
     pipe_x = width
@@ -122,16 +137,17 @@ while running:
         if score > best_score:
             best_score = score
 
-    screen.fill((blue)) #Cor de fundo
+    #Desenha o fundo
+    screen.blit(background, (0,0))
 
     if not game_over: 
 
         #Desenho do pássaro
-        pygame.draw.circle(screen, green, (bird_x, int(bird_y)), bird_radius)
+        screen.blit(rowlet, (bird_x, int(bird_y)))
 
         #desenho dos canos 
-        pygame.draw.rect(screen, black, (pipe_x, 0, pipe_width, pipe_height)) #superior 
-        pygame.draw.rect(screen, black, (pipe_x, pipe_height + pipe_gap, pipe_width, height - pipe_height -pipe_gap)) #inferior    
+        screen.blit(pipe_img, (pipe_x, pipe_height - height)) # superior
+        screen.blit(pipe_img, (pipe_x, pipe_height + pipe_gap)) # inferior
 
     else:
         game_over_text = GO_font.render("Game Over", True, red)
