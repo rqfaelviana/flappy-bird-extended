@@ -1,7 +1,6 @@
 import pygame
 import sys
 import random
-import time
 
 #Inicia o jogo
 pygame.init()
@@ -44,7 +43,6 @@ GO_font = pygame.font.Font(None, 64)
 #Criando o pássaro
 bird_x = 50
 bird_y = height // 2
-bird_radius = 15
 gravity = 0.6
 bird_velocity = 0
 jump_strength = -10
@@ -57,7 +55,7 @@ pipe_x = width
 pipe_height = random.randint(100, height - pipe_gap -100)
 
 # Redimensiona as imagens
-rowlet = pygame.transform.scale(rowlet, (65,55))
+rowlet = pygame.transform.scale(rowlet, (40,30))
 pipe_img = pygame.transform.scale(pipe_img, (pipe_width, height))
 
 #variáveis de pontuação
@@ -73,8 +71,6 @@ def reset_game():
     global bird_y, bird_velocity, pipe_x, pipe_height, game_over, score, best_score, point_awarded, game_started
     if score > best_score:
         best_score = score
-
-    time.sleep(1) # Pausa pequena antes de reiniciar o jogo
 
     bird_y = height // 2
     bird_velocity = 0 
@@ -127,9 +123,11 @@ while running:
             point_awarded = False
 
     #Colisão
-        if (bird_y - bird_radius < 0 or bird_y + bird_radius > height or 
-            (pipe_x < bird_x + bird_radius < pipe_x + pipe_width and 
-            (bird_y - bird_radius < pipe_height or bird_y + bird_radius > pipe_height + pipe_gap))):
+        bird_rect = pygame.Rect(bird_x, bird_y, 40, 30)
+        pipe_top_rect = pygame.Rect(pipe_x, pipe_height - height, pipe_width, height)
+        pipe_bottom_rect = pygame.Rect(pipe_x, pipe_height + pipe_gap, pipe_width, height)
+        
+        if bird_y < 0 or bird_y + 55 > height or bird_rect.colliderect(pipe_top_rect) or bird_rect.colliderect(pipe_bottom_rect):
             game_over = True
             slam.play()
             gameover_sound.play()
