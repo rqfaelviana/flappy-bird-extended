@@ -16,10 +16,13 @@ gameover_sound = pygame.mixer.Sound("sounds/game_over.mp3")
 
 #Imagens
 background = pygame.image.load("images/background.png")
-rowlet = pygame.image.load("images/rowlet_1.png")
+rowlet = [
+    pygame.image.load("images/rowlet_1.png"),
+    pygame.image.load("images/rowlet_2.png"),
+    pygame.image.load("images/rowlet_3.png"),
+    pygame.image.load("images/rowlet_4.png"),
+]
 pipe_img = pygame.image.load("images/pipe.png")
-
-
 
 #Configuração de tela
 width, height = 400, 600
@@ -55,8 +58,13 @@ pipe_x = width
 pipe_height = random.randint(100, height - pipe_gap -100)
 
 # Redimensiona as imagens
-rowlet = pygame.transform.scale(rowlet, (40,30))
+rowlet_resized = [pygame.transform.scale(frame, (40,30)) for frame in rowlet]
 pipe_img = pygame.transform.scale(pipe_img, (pipe_width, height))
+
+# Variáveis de animação
+current_frame = 0 
+animation_speed = 10
+frame_counter = 0
 
 #variáveis de pontuação
 score = 0
@@ -87,6 +95,10 @@ game_over = False
 game_started = False
 
 while running:
+    frame_counter += 1
+    if frame_counter >= animation_speed:
+        frame_counter = 0
+        current_frame = (current_frame + 1) % len(rowlet) 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -139,9 +151,8 @@ while running:
     screen.blit(background, (0,0))
 
     if not game_over: 
-
-        #Desenho do pássaro
-        screen.blit(rowlet, (bird_x, int(bird_y)))
+        #desenho do rowlet
+        screen.blit(rowlet_resized[current_frame], (bird_x, int(bird_y)))
 
         #desenho dos canos 
         screen.blit(pipe_img, (pipe_x, pipe_height - height)) # superior
