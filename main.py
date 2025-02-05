@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+import time
 
 #Inicia o jogo
 pygame.init()
@@ -74,11 +75,47 @@ point_awarded = False # evita múltiplos pontos por cano
 #contagem inicial para os canos aparecerem
 start_time = 0
 
+def draw_text_zoom(text, font, color, x, y, scale_factor=1.5):
+    #cria a superfícia do texto
+    text_surface = font.render(text, True, color)
+
+    #aumenta o tamanho do texto para o efeito de zoom
+    width = int(text_surface.get_width() * scale_factor)
+    height = int(text_surface.get_height() * scale_factor)
+    text_surface = pygame.transform.scale(text_surface, (width, height))
+
+    screen.blit(text_surface, (x - width // 2, y - height // 2))
+
+def draw_button(text, font, color, x, y, height, action=None):
+    # Calcula o tamanho do texto
+    button_text = font.render(text, True, black)
+    text_width, text_height = button_text.get_width(), button_text.get_height()
+
+    button_width = text_width + 20 
+    button_rect = pygame.Rect(x - button_width // 2, y - height // 2, button_width, height)
+
+    # Efeito de hover
+    mouse_pos = pygame.mouse.get_pos()
+    if button_rect.collidepoint(mouse_pos):
+        pygame.draw.rect(screen, (150, 150, 255), button_rect)
+    else:
+        pygame.draw.rect(screen, color, button_rect)
+
+    # Desenha o texto no botão
+    screen.blit(button_text, (x - text_width // 2, y - text_height // 2))
+
+    # Ação do botão 
+    if pygame.mouse.get_pressed()[0] and button_rect.collidepoint(mouse_pos):
+        if action:
+            action()
+
 # função para reiniciar o jogo
 def reset_game():
     global bird_y, bird_velocity, pipe_x, pipe_height, game_over, score, best_score, point_awarded, game_started
     if score > best_score:
         best_score = score
+
+    time.sleep(1)
 
     bird_y = height // 2
     bird_velocity = 0 
@@ -88,6 +125,15 @@ def reset_game():
     score = 0 
     point_awarded = False
     game_started = False
+
+def restart_game():
+    reset_game()
+    global game_over
+    game_over = False
+
+def quit_game():
+    pygame.quit()
+    sys.exit()
 
 #Loop principal
 running = True
@@ -159,10 +205,16 @@ while running:
         screen.blit(pipe_img, (pipe_x, pipe_height + pipe_gap)) # inferior
 
     else:
-        game_over_text = GO_font.render("Game Over", True, red)
-        restart_text = GO_font.render("Press R to Restart", True, white)
-        screen.blit(game_over_text, (width // 2 - game_over_text.get_width() // 2, height // 2 - game_over_text.get_height() // 2- 50))
-        screen.blit(restart_text, (width // 2 - restart_text.get_width() // 2, height // 2 - restart_text.get_height() // 2 + 20))
+        draw_text_zoom("Game Over", GO_font, red, width // 2, height // 2 - 50)
+        draw_button("Reiniciar", GO_font, white, width // 2, height // 2 + 20, 50, restart_game)
+        draw_button("Sair", GO_font, white, width // 2, height // 2 + 100, 50, quit_game)
+
+
+    # Exibe a maior pontuação
+        #game_over_text = GO_font.render("Game Over", True, red)
+        #restart_text = GO_font.render("Press R to Restart", True, white)
+        #screen.blit(game_over_text, (width // 2 - game_over_text.get_width() // 2, height // 2 - game_over_text.get_height() // 2- 50))
+        #screen.blit(restart_text, (width // 2 - restart_text.get_width() // 2, height // 2 - restart_text.get_height() // 2 + 20))
 
         # Exibe sua maior pontuação 
         best_score_text = GO_font.render(f"Best score: {best_score}", True, white)
