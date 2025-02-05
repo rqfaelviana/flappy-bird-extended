@@ -155,9 +155,6 @@ while running:
             else:
                 bird_velocity = jump_strength 
                 fly.play() 
-        if event.type == pygame.KEYDOWN and game_over:
-            if event.key == pygame.K_r: 
-                reset_game()
     
     if game_started and not game_over:
         current_time = pygame.time.get_ticks()
