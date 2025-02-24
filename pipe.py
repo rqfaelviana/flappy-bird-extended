@@ -1,4 +1,4 @@
-import pygame
+import pygame 
 import random
 
 class Pipe:
@@ -14,18 +14,18 @@ class Pipe:
 
     def reset_pipe(self):
         self.height = random.randint(100, self.screen_height - self.gap - 100)
-        self.passed = False  # Evita contar múltiplos pontos para o mesmo cano
-
+        self.passed = False #evitar contar múltiplos pontos para o mesmo cano
+    
     def update(self):
         self.x -= self.speed
-        if self.x + self.width < 0:  # Se o cano sair da tela, reposiciona
+        if self.x + self.width < 0: # se o cano sair da tela, reposiciona
             self.x = 400
             self.reset_pipe()
-
+    
     def draw(self, screen):
-        screen.blit(self.pipe_img, (self.x, self.height - self.screen_height))  # Cano superior
-        screen.blit(self.pipe_img, (self.x, self.height + self.gap))  # Cano inferior
-
+        screen.blit(self.pipe_img, (self.x, self.height - self.screen_height)) #cano superior
+        screen.blit(self.pipe_img, (self.x, self.height + self.gap)) #cano inferior
+    
     def get_rects(self):
         return (
             pygame.Rect(self.x, self.height - self.screen_height, self.width, self.screen_height),

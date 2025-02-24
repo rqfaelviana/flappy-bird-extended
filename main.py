@@ -42,9 +42,14 @@ game_started = False
 
 def reset_game():
     global score, game_over, game_started, best_score
+
     if score > best_score:
         best_score = score
-    time.sleep(1)
+    for i in range(255, 0, -5): #efeito de fade-out
+        screen.fill((0,0, 0, i))
+        pygame.display.update()
+        pygame.time.delay(10)
+        
     bird.y = height // 2
     bird.velocity = 0
     pipe.x = width
@@ -85,10 +90,12 @@ def game_logic():
         bird_rect = bird.get_rect()
         pipe_top_rect, pipe_bottom_rect = pipe.get_rects()
 
-        if bird.y < 0 or bird.y + 30 > height or bird_rect.colliderect(pipe_top_rect) or bird_rect.colliderect(pipe_bottom_rect):
+        if bird.y <= 0 or bird.y + 30 >= height - 10 or bird_rect.colliderect(pipe_top_rect) or bird_rect.colliderect(pipe_bottom_rect):
             game_over = True
-            slam.play()
-            gameover_sound.play()
+            if not game_over:
+                slam.play()
+                pygame.time.delay(200)
+                gameover_sound.play()
 
 def draw_screen():
     screen.blit(background, (0, 0))
