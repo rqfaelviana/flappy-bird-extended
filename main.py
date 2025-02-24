@@ -1,132 +1,64 @@
 import pygame
 import sys
-import random
 import time
+from bird import Bird
+from pipe import Pipe
 
-#Inicia o jogo
+#inicia o jogo
 pygame.init()
-
-#inicia o mixer de sons
 pygame.mixer.init()
 
-#Efeitos sonoros 
+#efeitos sonoros
 fly = pygame.mixer.Sound("sounds/whoosh.mp3")
 point = pygame.mixer.Sound("sounds/point.mp3")
 slam = pygame.mixer.Sound("sounds/slam.mp3")
 gameover_sound = pygame.mixer.Sound("sounds/game_over.mp3")
 
-#Imagens
-background = pygame.image.load("images/background.png")
-rowlet = [
-    pygame.image.load("images/rowlet_1.png"),
-    pygame.image.load("images/rowlet_2.png"),
-    pygame.image.load("images/rowlet_3.png"),
-    pygame.image.load("images/rowlet_4.png"),
-]
-pipe_img = pygame.image.load("images/pipe.png")
-
-#Configuração de tela
+# Configuração da tela
 width, height = 400, 600
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Flappy Bird")
-
-# cria o objeto clock que permite controlar o FPS
 clock = pygame.time.Clock()
 FPS = 60
 
 #Cores
-blue = (0, 0, 255)
-green = (0, 200, 0)
-black = (0, 0 , 0)
 white = (255, 255, 255)
 red = (255, 0, 0)
 
-#Fonte do Game Over
+#Fonte
 GO_font = pygame.font.Font(None, 64)
 
-#Criando o pássaro
-bird_x = 50
-bird_y = height // 2
-gravity = 0.6
-bird_velocity = 0
-jump_strength = -10
+#Fundo
+background = pygame.image.load("images/background.png")
 
-#Configuração dos canos
-pipe_width = 50
-pipe_gap = 120
-pipe_velocity = 5
-pipe_x = width
-pipe_height = random.randint(100, height - pipe_gap -100)
+#objetos do jogo
+bird = Bird(50, height // 2)
+pipe = Pipe(width)
 
-# Redimensiona as imagens
-rowlet_resized = [pygame.transform.scale(frame, (40,30)) for frame in rowlet]
-pipe_img = pygame.transform.scale(pipe_img, (pipe_width, height))
-
-# Variáveis de animação
-current_frame = 0 
-animation_speed = 10
-frame_counter = 0
-
-#variáveis de pontuação
 score = 0
 best_score = 0
-point_awarded = False # evita múltiplos pontos por cano
+game_over = False
+game_started = False
 
-#contagem inicial para os canos aparecerem
-start_time = 0
-
-def draw_text_zoom(text, font, color, x, y, scale_factor=1.5):
-    #cria a superfícia do texto
-    text_surface = font.render(text, True, color)
-
-    #aumenta o tamanho do texto para o efeito de zoom
-    width = int(text_surface.get_width() * scale_factor)
-    height = int(text_surface.get_height() * scale_factor)
-    text_surface = pygame.transform.scale(text_surface, (width, height))
-
-    screen.blit(text_surface, (x - width // 2, y - height // 2))
-
-def draw_button(text, font, color, x, y, height, action=None):
-    # Calcula o tamanho do texto
-    button_text = font.render(text, True, black)
-    text_width, text_height = button_text.get_width(), button_text.get_height()
-
-    button_width = text_width + 20 
-    button_rect = pygame.Rect(x - button_width // 2, y - height // 2, button_width, height)
-
-    # Efeito de hover
-    mouse_pos = pygame.mouse.get_pos()
-    if button_rect.collidepoint(mouse_pos):
-        pygame.draw.rect(screen, (150, 150, 255), button_rect)
-    else:
-        pygame.draw.rect(screen, color, button_rect)
-
-    # Desenha o texto no botão
-    screen.blit(button_text, (x - text_width // 2, y - text_height // 2))
-
-    # Ação do botão 
-    if pygame.mouse.get_pressed()[0] and button_rect.collidepoint(mouse_pos):
-        if action:
-            action()
-
-# função para reiniciar o jogo
 def reset_game():
-    global bird_y, bird_velocity, pipe_x, pipe_height, game_over, score, best_score, point_awarded, game_started
+    global score, game_over, game_started, best_score
     if score > best_score:
         best_score = score
-
     time.sleep(1)
-
-    bird_y = height // 2
-    bird_velocity = 0 
-    pipe_x = width
-    pipe_height = random.randint(100, height - pipe_gap - 100)
+    bird.y = height // 2
+    bird.velocity = 0
+    pipe.x = width
+    pipe.reset_pipe()
+    score = 0
     game_over = False
-    score = 0 
-    point_awarded = False
     game_started = False
+
+def quit_game():
+    pygame.quit()
+    sys.exit()
+
 def game_events():
-    global running, game_started, bird_velocity, start_time
+    global running, game_started, game_over
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -134,98 +66,69 @@ def game_events():
         if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
             if not game_started:
                 game_started = True
-                start_time = pygame.time.get_ticks()
-            else:
-                bird_velocity = jump_strength
+            elif not game_over:
+                bird.jump()
                 fly.play()
+
 def game_logic():
-    global bird_y, bird_velocity, pipe_x, pipe_height, score, point_awarded, game_over
+    global game_over, score
 
     if game_started and not game_over:
-        current_time = pygame.time.get_ticks()
+        bird.update()
+        pipe.update()
 
-        if current_time - start_time >= 4000:
-            pipe_x -= pipe_velocity
-        
-        bird_velocity += gravity
-        bird_y += bird_velocity
-
-        #aumenta a pontuação quando passa pelo cano
-        if pipe_x + pipe_width < bird_x and not point_awarded:
+        if pipe.x + pipe.width < bird.x and not pipe.passed:
             score += 1
-            point_awarded = True
+            pipe.passed = True
             point.play()
-        
-        if pipe_x + pipe_width < 0:
-            pipe_x = width 
-            pipe_height = random.randint(100, height - pipe_gap - 100)
-            point_awarded = False
-        
-        #colisão
-        bird_rect = pygame.Rect(bird_x, bird_y, 40, 30)
-        pipe_top_rect = pygame.Rect(pipe_x, pipe_height - height, pipe_width, height)
-        pipe_bottom_rect = pygame.Rect(pipe_x, pipe_height + pipe_gap, pipe_width,height)
 
-        if bird_y < 0 or bird_y + 55 > height or bird_rect.colliderect(pipe_top_rect) or bird_rect.colliderect(pipe_bottom_rect):
+        bird_rect = bird.get_rect()
+        pipe_top_rect, pipe_bottom_rect = pipe.get_rects()
+
+        if bird.y < 0 or bird.y + 30 > height or bird_rect.colliderect(pipe_top_rect) or bird_rect.colliderect(pipe_bottom_rect):
             game_over = True
             slam.play()
             gameover_sound.play()
 
 def draw_screen():
-    #Desenha o fundo
-    screen.blit(background, (0,0))
-
-    if not game_over: 
-        #desenho do rowlet
-        screen.blit(rowlet_resized[current_frame], (bird_x, int(bird_y)))
-
-        #desenho dos canos 
-        screen.blit(pipe_img, (pipe_x, pipe_height - height)) # superior
-        screen.blit(pipe_img, (pipe_x, pipe_height + pipe_gap)) # inferior
-
+    screen.blit(background, (0, 0))
+    
+    if not game_over:
+        bird.draw(screen)
+        pipe.draw(screen)
     else:
         draw_text_zoom("Game Over", GO_font, red, width // 2, height // 2 - 50)
-        draw_button("Reiniciar", GO_font, white, width // 2, height // 2 + 20, 50, restart_game)
+        draw_button("Reiniciar", GO_font, white, width // 2, height // 2 + 20, 50, reset_game)
         draw_button("Sair", GO_font, white, width // 2, height // 2 + 100, 50, quit_game)
-        
-        # Exibe sua maior pontuação 
-        best_score_text = GO_font.render(f"Best score: {best_score}", True, white)
-        screen.blit(best_score_text, (width // 2 - best_score_text.get_width() // 2, 60))
-
-    # Exibe a pontuação atual
+    
     score_text = GO_font.render(f"Score: {score}", True, white)
     screen.blit(score_text, (width // 2 - score_text.get_width() // 2, 20))
- 
-    #Atualiza a tela
+    
     pygame.display.flip()
 
-def restart_game():
-    reset_game()
-    global game_over
-    game_over = False
+def draw_text_zoom(text, font, color, x, y, scale_factor=1.5):
+    text_surface = font.render(text, True, color)
+    text_surface = pygame.transform.scale(text_surface, (int(text_surface.get_width() * scale_factor), int(text_surface.get_height() * scale_factor)))
+    screen.blit(text_surface, (x - text_surface.get_width() // 2, y - text_surface.get_height() // 2))
 
-def quit_game():
-    pygame.quit()
-    sys.exit()
+def draw_button(text, font, color, x, y, height, action=None):
+    button_text = font.render(text, True, (0, 0, 0))
+    text_width, text_height = button_text.get_width(), button_text.get_height()
+    button_width = text_width + 20
+    button_rect = pygame.Rect(x - button_width // 2, y - height // 2, button_width, height)
 
-#Loop principal
+    pygame.draw.rect(screen, color, button_rect)
+    screen.blit(button_text, (x - text_width // 2, y - text_height // 2))
+
+    if pygame.mouse.get_pressed()[0] and button_rect.collidepoint(pygame.mouse.get_pos()) and action:
+        action()
+
+# Loop principal
 running = True
-game_over = False
-game_started = False
-
 while running:
-    frame_counter += 1
-    if frame_counter >= animation_speed:
-        frame_counter = 0
-        current_frame = (current_frame + 1) % len(rowlet) 
-    
     game_events()
     game_logic()
     draw_screen()
-    
-    if score > best_score:
-        best_score = score
-    # Controla o FPS
     clock.tick(FPS)
 
 pygame.quit()
