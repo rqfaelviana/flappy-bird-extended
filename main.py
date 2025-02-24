@@ -91,11 +91,11 @@ def game_logic():
         pipe_top_rect, pipe_bottom_rect = pipe.get_rects()
 
         if bird.y <= 0 or bird.y + 30 >= height - 10 or bird_rect.colliderect(pipe_top_rect) or bird_rect.colliderect(pipe_bottom_rect):
-            game_over = True
             if not game_over:
                 slam.play()
-                pygame.time.delay(200)
+                pygame.time.delay(280)
                 gameover_sound.play()
+            game_over = True
 
 def draw_screen():
     screen.blit(background, (0, 0))
