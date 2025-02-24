@@ -42,13 +42,18 @@ game_started = False
 
 def reset_game():
     global score, game_over, game_started, best_score
-
     if score > best_score:
         best_score = score
-    for i in range(255, 0, -5): #efeito de fade-out
-        screen.fill((0,0, 0, i))
+    
+    fade_surface = pygame.Surface((width, height))
+
+    for alpha in range(255, 0, -5): #efeito de fade-out
+        fade_surface.set_alpha(alpha)
+        screen.blit(background, (0, 0))
+        screen.blit(fade_surface, (0, 0))
         pygame.display.update()
         pygame.time.delay(10)
+
         
     bird.y = height // 2
     bird.velocity = 0
@@ -76,7 +81,7 @@ def game_events():
                 fly.play()
 
 def game_logic():
-    global game_over, score
+    global game_over, score, pipe
 
     if game_started and not game_over:
         bird.update()
@@ -86,6 +91,9 @@ def game_logic():
             score += 1
             pipe.passed = True
             point.play()
+
+            if score % 5 == 0:
+                pipe.speed += 0.5
 
         bird_rect = bird.get_rect()
         pipe_top_rect, pipe_bottom_rect = pipe.get_rects()
@@ -97,9 +105,18 @@ def game_logic():
                 gameover_sound.play()
             game_over = True
 
+background_x = 0
 def draw_screen():
-    screen.blit(background, (0, 0))
+    global background_x
+    background_x -= 2  #velocidade do deslocamento
+
+    #faz o background rolar infinitamente
+    screen.blit(background, (background_x, 0))
+    screen.blit(background, (background_x + width, 0))
     
+    if background_x <= -width:
+        background_x = 0
+
     if not game_over:
         bird.draw(screen)
         pipe.draw(screen)
@@ -107,10 +124,10 @@ def draw_screen():
         draw_text_zoom("Game Over", GO_font, red, width // 2, height // 2 - 50)
         draw_button("Reiniciar", GO_font, white, width // 2, height // 2 + 20, 50, reset_game)
         draw_button("Sair", GO_font, white, width // 2, height // 2 + 100, 50, quit_game)
-    
+
     score_text = GO_font.render(f"Score: {score}", True, white)
     screen.blit(score_text, (width // 2 - score_text.get_width() // 2, 20))
-    
+
     pygame.display.flip()
 
 def draw_text_zoom(text, font, color, x, y, scale_factor=1.5):

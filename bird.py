@@ -29,7 +29,9 @@ class Bird:
             self.current_frame = (self.current_frame + 1) % len(self.images)
 
     def draw(self, screen):
-        screen.blit(self.images[self.current_frame], (self.x, int(self.y)))
+        angle = min(max(-self.velocity * 2, -20), 20)
+        rotated_image = pygame.transform.rotate(self.images[self.current_frame], angle)
+        screen.blit(rotated_image, (self.x, int(self.y)))
 
     def get_rect(self):
         return pygame.Rect(self.x, self.y, 40, 30)

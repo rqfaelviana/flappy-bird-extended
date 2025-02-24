@@ -13,7 +13,7 @@ class Pipe:
         self.reset_pipe()
 
     def reset_pipe(self):
-        self.height = random.randint(100, self.screen_height - self.gap - 100)
+        self.height = random.randint(50, self.screen_height - self.gap - 50)
         self.passed = False #evitar contar múltiplos pontos para o mesmo cano
     
     def update(self):
@@ -28,6 +28,6 @@ class Pipe:
     
     def get_rects(self):
         return (
-            pygame.Rect(self.x, self.height - self.screen_height, self.width, self.screen_height),
-            pygame.Rect(self.x, self.height + self.gap, self.width, self.screen_height),
+            pygame.Rect(self.x, 0, self.width , self.height),
+            pygame.Rect(self.x, self.height + self.gap, self.width, self.screen_height - self.height - self.gap),
         )
